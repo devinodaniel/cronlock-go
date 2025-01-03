@@ -13,3 +13,8 @@ web:
 clean:
 	rm -f ./cronlock
 	rm -f ./cmd/cronlockweb/cronlockweb
+
+.PHONY: test
+test:
+	go test ./...
+	

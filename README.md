@@ -50,6 +50,12 @@ With cron:
 
 HTML templates should be in the working directory of the `./cronlockweb` binary.
 
+## Tests
+
+Run all the tests:
+
+`make tests`
+
 ## Cleanup
 
 Remove the binaries
