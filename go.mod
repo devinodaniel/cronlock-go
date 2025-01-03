@@ -1,4 +1,4 @@
-module cronlock-go
+module github.com/devinodaniel/cronlock-go
 
 go 1.21.6
 
