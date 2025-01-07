@@ -2,7 +2,6 @@ package log
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"time"
 )
@@ -25,10 +24,11 @@ func Info(format string, args ...interface{}) {
 
 func Fatal(format string, args ...interface{}) {
 	date := time.Now().Format(logDateFormat)
-	log.Fatalf(date+" FATAL: "+format+"\n", args...)
+	fmt.Printf(date+" FATAL: "+format+"\n", args...)
+	os.Exit(1)
 }
 
 func Error(format string, args ...interface{}) {
 	date := time.Now().Format(logDateFormat)
-	log.Fatalf(date+" ERROR: "+format+"\n", args...)
+	fmt.Printf(date+" ERROR: "+format+"\n", args...)
 }

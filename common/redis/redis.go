@@ -4,16 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/devinodaniel/cronlock-go/common/config"
-
 	"github.com/redis/go-redis/v9"
 )
 
 // Connect() makes a connection to redis and retries if it fails
-func Connect() (*redis.Client, error) {
+func Connect(host, port string) (*redis.Client, error) {
 	// connect to redis
 	client := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", config.CRONLOCK_HOST, config.CRONLOCK_PORT),
+		Addr:     fmt.Sprintf("%s:%s", host, port),
 		Password: "", // No password set
 		DB:       0,  // Use default DB
 		Protocol: 2,  // Connection protocol

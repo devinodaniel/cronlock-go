@@ -13,6 +13,8 @@ import (
 	"github.com/devinodaniel/cronlock-go/common/cron"
 	"github.com/devinodaniel/cronlock-go/common/log"
 	"github.com/devinodaniel/cronlock-go/common/redis"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
@@ -30,14 +32,21 @@ type CronRow struct {
 
 func Server() {
 	http.HandleFunc("/", listCrons)
+	// prometheus metrics
+	http.Handle("/metrics", promhttp.Handler())
 
 	log.Info("Starting server on :%s", config.CRONWEB_PORT)
 	http.ListenAndServe(":"+config.CRONWEB_PORT, nil)
 }
 
+// prometheus Handler for metrics
+func prometheusHandler(w http.ResponseWriter, req *http.Request) {
+	promhttp.Handler().ServeHTTP(w, req)
+}
+
 func listCrons(w http.ResponseWriter, req *http.Request) {
 	// open redis connection
-	redisClient, err := redis.Connect()
+	redisClient, err := redis.Connect(config.CRONLOCK_REDIS_HOST, config.CRONLOCK_REDIS_PORT)
 	if err != nil {
 		log.Error("Failed to connect to Redis: %v\n", err)
 	}

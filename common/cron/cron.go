@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"time"
 
@@ -29,6 +30,10 @@ type Cron struct {
 
 func New(args []string) *Cron {
 	md5hash := hash(args)
+
+	if config.CRONLOCK_PRINT_ARGS == "true" {
+		log.Info("args: %v", args)
+	}
 
 	return &Cron{
 		Ctx:     context.Background(),
@@ -89,8 +94,8 @@ func (c *Cron) start() error {
 
 	// bail early if the key was already set, the command is already running
 	if !okToRun {
-		log.Info("%s already running, skipping", c.Md5Hash)
-		return nil
+		c.Status = config.CRON_STATUS_SKIPPED
+		return fmt.Errorf("%s already running, skipping", c.Md5Hash)
 	}
 
 	// if the key was set, the command is ok to run
@@ -126,12 +131,12 @@ func (c *Cron) finish() error {
 		// set expiration time to keep forever (0)
 		expiryTime = time.Duration(0) * time.Second
 	case "false": // default
-		// set expiration time to 10 seconds
-		expiryTime = time.Duration(20) * time.Second
+		// set to expire after grace period
+		expiryTime = time.Duration(config.CRONLOCK_GRACE_PERIOD) * time.Second
 	}
 
-	// set the status to complete if it was not already set to failed
-	if c.Status != config.CRON_STATUS_FAILED {
+	// set the status to complete if it was successful
+	if c.Status == config.CRON_STATUS_SUCCESS {
 		c.Status = config.CRON_STATUS_COMPLETE
 	}
 
@@ -144,7 +149,7 @@ func (c *Cron) finish() error {
 		log.Debug("%s %s metadata updated in Redis", c.Md5Hash, c.Status)
 	}
 
-	log.Info("%s finished in %d seconds, unlocking", c.Md5Hash, c.Duration)
+	log.Info("%s finished in %d sec, unlocking in %v", c.Md5Hash, c.Duration, expiryTime)
 
 	return nil
 }
@@ -155,6 +160,11 @@ func raw_cmd(args []string) error {
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdout = nil
 	cmd.Stderr = nil
+
+	if config.CRONLOCK_PRINT_STDOUT == "true" {
+		cmd.Stdout = os.Stdout
+	}
+
 	if err := cmd.Run(); err != nil {
 		return err
 	}

@@ -6,13 +6,19 @@ import (
 )
 
 var (
-	CRONLOCK_HOST           = getEnvStr("CRONLOCK_HOST", "localhost")
-	CRONLOCK_PORT           = getEnvStr("CRONLOCK_PORT", "6379")
+	CRONLOCK_REDIS_HOST     = getEnvStr("CRONLOCK_REDIS_HOST", "localhost")
+	CRONLOCK_REDIS_PORT     = getEnvStr("CRONLOCK_REDIS_PORT", "6379")
 	CRONLOCK_RETRY_ATTEMPTS = getEnvInt("CRONLOCK_RETRY_ATTEMPTS", 5)
-	CRONLOCK_DEBUG          = getEnvStr("CRONLOCK_DEBUG", "false")
 	CRONLOCK_KEEP_HISTORY   = getEnvStr("CRONLOCK_KEEP_HISTORY", "false")
 	CRONLOCK_EXPIRY_TIME    = getEnvInt("CRONLOCK_EXPIRY_TIME", 86400)
+	CRONLOCK_GRACE_PERIOD   = getEnvInt("CRONLOCK_GRACE_PERIOD", 10)
 
+	// useful for debugging
+	CRONLOCK_DEBUG        = getEnvStr("CRONLOCK_DEBUG", "false")
+	CRONLOCK_PRINT_STDOUT = getEnvStr("CRONLOCK_PRINT_STDOUT", "false")
+	CRONLOCK_PRINT_ARGS   = getEnvStr("CRONLOCK_PRINT_ARGS", "false")
+
+	// web server
 	CRONWEB_HOST = getEnvStr("CRONWEB_HOST", "localhost")
 	CRONWEB_PORT = getEnvStr("CRONWEB_PORT", "8080")
 )
@@ -22,6 +28,7 @@ const (
 	CRON_STATUS_SUCCESS  = "SUCCESS"
 	CRON_STATUS_FAILED   = "FAILED"
 	CRON_STATUS_COMPLETE = "COMPLETE"
+	CRON_STATUS_SKIPPED  = "SKIPPED"
 )
 
 // getEnvString retrieves the string value of the environment variable named by the key.

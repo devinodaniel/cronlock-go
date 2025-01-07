@@ -7,6 +7,7 @@ package main
 import (
 	"os"
 
+	"github.com/devinodaniel/cronlock-go/common/config"
 	"github.com/devinodaniel/cronlock-go/common/cron"
 	"github.com/devinodaniel/cronlock-go/common/log"
 	"github.com/devinodaniel/cronlock-go/common/redis"
@@ -24,9 +25,9 @@ func main() {
 	cron := cron.New(args)
 
 	// open redis connection
-	cron.RedisClient, err = redis.Connect()
+	cron.RedisClient, err = redis.Connect(config.CRONLOCK_REDIS_HOST, config.CRONLOCK_REDIS_PORT)
 	if err != nil {
-		log.Fatal("Failed to connect to Redis: %v\n", err)
+		log.Fatal("Failed to connect to Redis: %v", err)
 	}
 
 	// explicitly close the redis connection when the script finishes
@@ -34,6 +35,6 @@ func main() {
 
 	// run the cron job
 	if err := cron.Run(); err != nil {
-		log.Error("%v\n", err)
+		log.Error("%v", err)
 	}
 }
