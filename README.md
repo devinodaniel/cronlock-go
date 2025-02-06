@@ -61,3 +61,9 @@ Run all the tests:
 Remove the binaries
 
 `make clean`
+
+## Remove all crons from Redis
+
+To start from a clean slate, destroy all cron locks in Redis.
+
+`make flush`

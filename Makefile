@@ -20,4 +20,7 @@ test:
 	go test -v ./common/redis
 # run the rest of the tests
 	go test -v ./common/cron
-	
+
+.PHONY: flush
+flush:
+	redis-cli FLUSHDB
