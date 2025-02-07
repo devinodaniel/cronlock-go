@@ -4,7 +4,11 @@ Distributed cron lock written in go with a UI for visualizing current crons and 
 
 But why?
 
-This allow you to have multiple cron servers running the same crons for high availability. Cronlock will prevent a cron from being executed on multiple hosts. The first and fastest cron host gets to execute the cron. You can easily upgrade or perform maintenance on one or more crons and still have reliable crons.
+Features:
+
+- run multiple cron servers for high availability
+- easily perform maintenance on cron hosts without missing crons
+- expose metrics like how many crons are running, their pass/fail statuses, and duration  
 
 ## Install Redis
 
@@ -48,7 +52,27 @@ With cron:
 
 ### Templates
 
-HTML templates should be in the working directory of the `./cronlockweb` binary.
+HTML templates (`cmd/cronlockweb/templates`) should be placed in the working directory of `cronlockweb`.
+
+## Configuration
+
+Any of these options can be passed to `cronlock` per command or set as global environment variables.
+
+`CRONLOCK_REDIS_HOST` - (default: localhost) hostname or IP address of the Redis server
+
+`CRONLOCK_REDIS_PORT` - (default: 6379) port Redis is running on
+
+`CRONLOCK_TIMEOUT`- (default: 3600) expire the cronlock after N seconds if it somehow fails to report success or failure. 0 creates permanent lock for crons with the same hash. useful to ensure a cron never gets ran more than once
+
+`CRONLOCK_GRACE_PERIOD` - (default: 5 sec) remove lock N seconds after cron ends. useful for quick crons. must be greater than 0. When `CRONLOCK_TIMEOUT` is set to zero, this has no use
+
+For debugging and more verbose feedback:
+
+`CRONLOCK_DEBUG` - (default: false) show debug log lines
+
+`CRONLOCK_PRINT_STDOUT` - (default: false) print stdout of command when executing cron
+
+`CRONLOCK_PRINT_ARGS` - (default: false) print the script arguments when executing cron
 
 ## Tests
 

@@ -25,7 +25,7 @@ func main() {
 	cron := cron.New(args)
 
 	// open redis connection
-	cron.RedisClient, err = redis.Connect(config.CRONLOCK_REDIS_HOST, config.CRONLOCK_REDIS_PORT)
+	cron.RedisClient, err = redis.Connect(config.CRONLOCK_REDIS_HOST, config.CRONLOCK_REDIS_PORT, config.CRONLOCK_REDIS_DATABASE)
 	if err != nil {
 		log.Fatal("Failed to connect to Redis: %v", err)
 	}

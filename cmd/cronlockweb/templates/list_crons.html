@@ -4,25 +4,26 @@
 </head>
 <body>
 	<div class="container">
+		<h1 class="text-center">Active crons</h1>
 		<table class="table">
 			<thead>
 				<tr>
-					<th>Unique ID (Hash)</th>
-					<th>Started</th>
-					<th>Status</th>
-					<th>Duration</th>
 					<th>Command</th>
+					<th>Status</th>
+					<th>Started</th>
+					<th>Duration</th>
+					<th>Unique ID (Hash)</th>
 					<th>Error</th>
 				</tr>
 			</thead>
 			<tbody
 				{{range .}}
 				<tr>
-					<td>{{.Hash}}</td>
-					<td>{{.Started}}</td>
-					<td>{{.Status}}</td>
-					<td>{{.Duration}} seconds</td>
 					<td>{{.Command}}</td>
+					<td>{{.Status}}</td>
+					<td>{{.Started}}</td>
+					<td>{{.Duration}} seconds</td>
+					<td>{{.Hash}}</td>
 					<td>{{.Error}}</td>
 				</tr>
 				{{end}}

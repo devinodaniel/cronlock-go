@@ -20,6 +20,8 @@ type Cron struct {
 	Ctx         context.Context `json:"-"`
 	EpochStart  int64           `json:"epochStart"`
 	EpochEnd    int64           `json:"epochEnd"`
+	Timeout     time.Duration   `json:"timeout"`
+	ExpiryTime  time.Duration   `json:"expiryTime"`
 	Duration    int64           `json:"duration"`
 	Md5Hash     string          `json:"md5Hash"`
 	Args        []string        `json:"args"`
@@ -31,7 +33,7 @@ type Cron struct {
 func New(args []string) *Cron {
 	md5hash := hash(args)
 
-	if config.CRONLOCK_PRINT_ARGS == "true" {
+	if config.CRONLOCK_PRINT_ARGS {
 		log.Info("args: %v", args)
 	}
 
@@ -82,12 +84,12 @@ func (c *Cron) start() error {
 	c.EpochStart = time.Now().Unix()
 	// set the status to running
 	c.Status = config.CRON_STATUS_RUNNING
-	// expire the key after 24 hours in case the command fails to finish
-	expiryTime := time.Duration(config.CRONLOCK_EXPIRY_TIME) * time.Second
+	// expire and auto-unlock after N amount of time in case the command fails to finish
+	c.Timeout = time.Duration(config.CRONLOCK_TIMEOUT) * time.Second
 
 	// check if the command is already running by setting the key
 	// SetNX returns true if the key was set, false if it already exists
-	okToRun, err := c.RedisClient.SetNX(c.Ctx, c.Md5Hash, c, expiryTime).Result()
+	okToRun, err := c.RedisClient.SetNX(c.Ctx, c.Md5Hash, c, c.Timeout).Result()
 	if err != nil {
 		return err
 	}
@@ -95,7 +97,7 @@ func (c *Cron) start() error {
 	// bail early if the key was already set, the command is already running
 	if !okToRun {
 		c.Status = config.CRON_STATUS_SKIPPED
-		return fmt.Errorf("%s already running, skipping", c.Md5Hash)
+		return fmt.Errorf("%s locked, skipping", c.Md5Hash)
 	}
 
 	// if the key was set, the command is ok to run
@@ -117,31 +119,30 @@ func (c *Cron) start() error {
 	return nil
 }
 
-// finish() updates the metadata after the command has run
+// finish() updates the metadata after the command has executed
 func (c *Cron) finish() error {
 	// set the end time
 	c.EpochEnd = time.Now().Unix()
 	// calculate the duration
 	c.Duration = c.EpochEnd - c.EpochStart
 
-	var expiryTime time.Duration
-
-	switch config.CRONLOCK_KEEP_HISTORY {
-	case "true":
-		// set expiration time to keep forever (0)
-		expiryTime = time.Duration(0) * time.Second
-	case "false": // default
-		// set to expire after grace period
-		expiryTime = time.Duration(config.CRONLOCK_GRACE_PERIOD) * time.Second
+	// set the expiry time
+	if c.Timeout == 0 {
+		// keep the lock
+		c.ExpiryTime = c.Timeout
+	} else {
+		// unlock after N amount of time
+		c.ExpiryTime = time.Duration(config.CRONLOCK_GRACE_PERIOD) * time.Second
 	}
 
 	// set the status to complete if it was successful
+	// other statuses should remain the same (failed, skipped, etc)
 	if c.Status == config.CRON_STATUS_SUCCESS {
 		c.Status = config.CRON_STATUS_COMPLETE
 	}
 
-	// update the metadata
-	updateResult, err := c.RedisClient.Set(c.Ctx, c.Md5Hash, c, expiryTime).Result()
+	// update the metadata in Redis
+	updateResult, err := c.RedisClient.Set(c.Ctx, c.Md5Hash, c, c.ExpiryTime).Result()
 	if err != nil {
 		return err
 	}
@@ -149,7 +150,7 @@ func (c *Cron) finish() error {
 		log.Debug("%s %s metadata updated in Redis", c.Md5Hash, c.Status)
 	}
 
-	log.Info("%s finished in %d sec, unlocking in %v", c.Md5Hash, c.Duration, expiryTime)
+	log.Info("%s finished in %d sec, unlocking in %v", c.Md5Hash, c.Duration, c.ExpiryTime)
 
 	return nil
 }
@@ -161,7 +162,7 @@ func raw_cmd(args []string) error {
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 
-	if config.CRONLOCK_PRINT_STDOUT == "true" {
+	if config.CRONLOCK_PRINT_STDOUT {
 		cmd.Stdout = os.Stdout
 	}
 

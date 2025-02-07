@@ -1,26 +1,26 @@
 package config
 
 import (
+	"log"
 	"os"
 	"strconv"
 )
 
 var (
-	CRONLOCK_REDIS_HOST     = getEnvStr("CRONLOCK_REDIS_HOST", "localhost")
-	CRONLOCK_REDIS_PORT     = getEnvStr("CRONLOCK_REDIS_PORT", "6379")
-	CRONLOCK_RETRY_ATTEMPTS = getEnvInt("CRONLOCK_RETRY_ATTEMPTS", 5)
-	CRONLOCK_KEEP_HISTORY   = getEnvStr("CRONLOCK_KEEP_HISTORY", "false")
-	CRONLOCK_EXPIRY_TIME    = getEnvInt("CRONLOCK_EXPIRY_TIME", 86400)
-	CRONLOCK_GRACE_PERIOD   = getEnvInt("CRONLOCK_GRACE_PERIOD", 10)
+	CRONLOCK_REDIS_HOST     = EnvStr("CRONLOCK_REDIS_HOST", "localhost")
+	CRONLOCK_REDIS_PORT     = EnvStr("CRONLOCK_REDIS_PORT", "6379")
+	CRONLOCK_REDIS_DATABASE = EnvInt("CRONLOCK_REDIS_DATABASE", 0)
+	CRONLOCK_TIMEOUT        = EnvInt("CRONLOCK_TIMEOUT", 3600)
+	CRONLOCK_GRACE_PERIOD   = EnvInt("CRONLOCK_GRACE_PERIOD", 5)
 
 	// useful for debugging
-	CRONLOCK_DEBUG        = getEnvStr("CRONLOCK_DEBUG", "false")
-	CRONLOCK_PRINT_STDOUT = getEnvStr("CRONLOCK_PRINT_STDOUT", "false")
-	CRONLOCK_PRINT_ARGS   = getEnvStr("CRONLOCK_PRINT_ARGS", "false")
+	CRONLOCK_DEBUG        = EnvBool("CRONLOCK_DEBUG", false)
+	CRONLOCK_PRINT_STDOUT = EnvBool("CRONLOCK_PRINT_STDOUT", false)
+	CRONLOCK_PRINT_ARGS   = EnvBool("CRONLOCK_PRINT_ARGS", false)
 
 	// web server
-	CRONWEB_HOST = getEnvStr("CRONWEB_HOST", "localhost")
-	CRONWEB_PORT = getEnvStr("CRONWEB_PORT", "8080")
+	CRONWEB_HOST = EnvStr("CRONWEB_HOST", "localhost")
+	CRONWEB_PORT = EnvStr("CRONWEB_PORT", "8080")
 )
 
 const (
@@ -31,8 +31,8 @@ const (
 	CRON_STATUS_SKIPPED  = "SKIPPED"
 )
 
-// getEnvString retrieves the string value of the environment variable named by the key.
-func getEnvStr(key, defaultValue string) string {
+// EnvString retrieves the string value of the environment variable named by the key.
+func EnvStr(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
 	} else {
@@ -41,8 +41,8 @@ func getEnvStr(key, defaultValue string) string {
 
 }
 
-// getEnv retrieves the integer value of the environment variable named by the key.
-func getEnvInt(key string, defaultValue int) int {
+// EnvInt retrieves the integer value of the environment variable named by the key.
+func EnvInt(key string, defaultValue int) int {
 	if value := os.Getenv(key); value != "" {
 		// make sure that the value is an integer
 		value, _ := strconv.Atoi(value)
@@ -50,4 +50,19 @@ func getEnvInt(key string, defaultValue int) int {
 	} else {
 		return defaultValue
 	}
+}
+
+// EnvBool retrieves the boolean value of the environment variable named by the key.
+func EnvBool(key string, defaultValue bool) bool {
+	if value := os.Getenv(key); value != "" {
+		switch value {
+		case "true":
+			return true
+		case "false":
+			return false
+		default:
+			log.Fatalf("Invalid boolean value for %s: %s", key, value)
+		}
+	}
+	return defaultValue
 }

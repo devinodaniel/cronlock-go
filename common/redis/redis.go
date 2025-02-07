@@ -8,13 +8,13 @@ import (
 )
 
 // Connect() makes a connection to redis and retries if it fails
-func Connect(host, port string) (*redis.Client, error) {
+func Connect(host string, port string, database int) (*redis.Client, error) {
 	// connect to redis
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", host, port),
-		Password: "", // No password set
-		DB:       0,  // Use default DB
-		Protocol: 2,  // Connection protocol
+		Password: "",       // No password set
+		DB:       database, // Default is 0, 1 is for tests
+		Protocol: 2,        // Connection protocol
 	})
 
 	// ping redis to check if the connection is working

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/devinodaniel/cronlock-go/common/config"
 )
 
 var (
@@ -11,7 +13,7 @@ var (
 )
 
 func Debug(format string, args ...interface{}) {
-	if os.Getenv("CRONLOCK_DEBUG") == "true" {
+	if config.EnvBool("CRONLOCK_DEBUG", false) {
 		date := time.Now().Format(logDateFormat)
 		fmt.Printf(date+" DEBUG: "+format+"\n", args...)
 	}

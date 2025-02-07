@@ -46,7 +46,7 @@ func prometheusHandler(w http.ResponseWriter, req *http.Request) {
 
 func listCrons(w http.ResponseWriter, req *http.Request) {
 	// open redis connection
-	redisClient, err := redis.Connect(config.CRONLOCK_REDIS_HOST, config.CRONLOCK_REDIS_PORT)
+	redisClient, err := redis.Connect(config.CRONLOCK_REDIS_HOST, config.CRONLOCK_REDIS_PORT, config.CRONLOCK_REDIS_DATABASE)
 	if err != nil {
 		log.Error("Failed to connect to Redis: %v\n", err)
 	}
@@ -88,11 +88,11 @@ func listCrons(w http.ResponseWriter, req *http.Request) {
 
 			rows = append(rows,
 				CronRow{
-					Hash:     cron.Md5Hash,
+					Command:  strings.Join(cron.Args, " "),
 					Status:   cron.Status,
 					Started:  humanStartTime,
 					Duration: duration,
-					Command:  strings.Join(cron.Args, " "),
+					Hash:     cron.Md5Hash,
 					Error:    cron.Error})
 		}
 	}

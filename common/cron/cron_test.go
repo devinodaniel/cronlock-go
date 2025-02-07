@@ -6,8 +6,14 @@ import (
 	"time"
 
 	"github.com/devinodaniel/cronlock-go/common/config"
-	"github.com/redis/go-redis/v9"
+	"github.com/devinodaniel/cronlock-go/common/redis"
+
 	"github.com/stretchr/testify/assert"
+)
+
+var (
+	// use a different database for testing
+	redisTestDatabase = 1
 )
 
 func TestRedisClientNotSet(t *testing.T) {
@@ -45,10 +51,7 @@ func TestCronMarshalUnmarshalBinary(t *testing.T) {
 }
 
 func TestCronRunSuccess(t *testing.T) {
-	// Mock Redis client
-	client := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
+	client, _ := redis.Connect("localhost", "6379", redisTestDatabase)
 
 	args := []string{"sleep", "2"}
 	cron := New(args)
@@ -63,10 +66,7 @@ func TestCronRunSuccess(t *testing.T) {
 }
 
 func TestCronRunSkipped(t *testing.T) {
-	// Mock Redis client
-	client := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
+	client, _ := redis.Connect("localhost", "6379", redisTestDatabase)
 
 	// two cron jobs with the same arguments
 	// the second one should be skipped becasue the first one is still running
@@ -103,10 +103,7 @@ func TestCronRunSkipped(t *testing.T) {
 }
 
 func TestCronRunCommandExitCode1(t *testing.T) {
-	// Mock Redis client
-	client := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
+	client, _ := redis.Connect("localhost", "6379", redisTestDatabase)
 
 	// Mock config values
 	config.CRONLOCK_EXPIRY_TIME = 1
@@ -124,10 +121,7 @@ func TestCronRunCommandExitCode1(t *testing.T) {
 }
 
 func TestCronRunInvalid(t *testing.T) {
-	// Mock Redis client
-	client := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
+	client, _ := redis.Connect("localhost", "6379", redisTestDatabase)
 
 	// Mock config values
 	config.CRONLOCK_EXPIRY_TIME = 1

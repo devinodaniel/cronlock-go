@@ -10,7 +10,7 @@ import (
 )
 
 func TestConnectRedisSuccess(t *testing.T) {
-	client, err := Connect(config.CRONLOCK_REDIS_HOST, config.CRONLOCK_REDIS_PORT)
+	client, err := Connect(config.CRONLOCK_REDIS_HOST, config.CRONLOCK_REDIS_PORT, 1)
 
 	if err != nil {
 		fmt.Printf("\n*********FAILED TO CONNECT TO REDIS - IS THE LOCAL REDIS SERVER RUNNING?\n"+
@@ -24,7 +24,7 @@ func TestConnectRedisSuccess(t *testing.T) {
 }
 
 func TestConnectRedisFailure(t *testing.T) {
-	client, err := Connect("localhost", "1234")
+	client, err := Connect("localhost", "1234", 1)
 	assert.Error(t, err)
 	assert.Nil(t, client)
 }
